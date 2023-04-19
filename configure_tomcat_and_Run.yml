@@ -1,0 +1,33 @@
+---
+- name: Add Tomcat Manager user
+  hosts: all
+  remote_user: ansible
+  become: yes
+
+  vars:
+    tomcat_users_file: /opt/apache-tomcat-8.5.72/conf/tomcat-users.xml
+    tomcat_manager_user: tomcat
+    tomcat_manager_password: s3cret
+
+  tasks:
+    - name: Add manager-gui role to Tomcat user
+      lineinfile:
+        path: "{{ tomcat_users_file }}"
+        line: '<role rolename="manager-gui"/>'
+        state: present
+        create: yes
+      become: yes
+
+    - name: Add new Tomcat user
+      lineinfile:
+        path: "{{ tomcat_users_file }}"
+        line: '<user username="{{ tomcat_manager_user }}" password="{{ tomcat_manager_password }}" roles="manager-gui"/>'
+        state: present
+        create: yes
+      become: yes
+
+    - name: Restart Tomcat
+      systemd:
+        name: tomcat
+        state: restarted
+      become: yes
