@@ -1,0 +1,45 @@
+---
+- name: Install JDK 1.8 and Apache Tomcat
+  hosts: all
+  remote_user: ansible
+  become: yes
+
+  tasks:
+    - name: Install JDK 1.8
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+      become: yes
+
+    - name: Download and extract Apache Tomcat
+      get_url:
+        url: "https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.72/bin/apache-tomcat-8.5.72.tar.gz"
+        dest: /tmp/apache-tomcat-8.5.72.tar.gz
+      become: yes
+
+    - name: Extract Apache Tomcat
+      unarchive:
+        src: /tmp/apache-tomcat-8.5.72.tar.gz
+        dest: /opt/
+        remote_src: yes
+      become: yes
+
+    - name: Set permissions on Tomcat directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: ansible
+        group: ansible
+        mode: "0755"
+      with_items:
+        - /opt/apache-tomcat-8.5.72
+        - /opt/apache-tomcat-8.5.72/bin
+        - /opt/apache-tomcat-8.5.72/logs
+        - /opt/apache-tomcat-8.5.72/temp
+        - /opt/apache-tomcat-8.5.72/webapps
+        - /opt/apache-tomcat-8.5.72/work
+      become: yes
+
+    - name: Start Tomcat
+      shell: /opt/apache-tomcat-8.5.72/bin/startup.sh
+      become: yes
